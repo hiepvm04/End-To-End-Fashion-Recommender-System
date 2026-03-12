@@ -1,174 +1,361 @@
+# 👒 End-to-End Fashion Recommender System
 
-# 📊 End-To-End-Fashion-Recommender-System
-![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)
-![Dependencies](https://img.shields.io/badge/dependencies-uv-success)
-![Platform](https://img.shields.io/badge/platform-Hopsworks-orange)
+<div align="center">
 
-## 📖 Project Context
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.14-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
+![Hopsworks](https://img.shields.io/badge/Platform-Hopsworks-E87722?style=for-the-badge)
+![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![uv](https://img.shields.io/badge/Package_Manager-uv-6E4FBB?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Personal_Project-8A2BE2?style=for-the-badge)
 
-This project was built for learning, practicing, and applying knowledge of Machine Learning, Recommender Systems, and MLOps into practice. It simulates a complete machine learning pipeline from data processing and storage to model serving and deployment.
+**Hệ thống gợi ý sản phẩm thời trang cá nhân hóa end-to-end, áp dụng kiến trúc 4 giai đoạn với Two-Tower Retrieval, CatBoost Ranking và LLM Ranking tích hợp OpenAI.**
 
-## 🎯 Project Description
-
-**Hands-on Personalized Recommender System** is a complete (end-to-end) personalized fashion product recommendation system. This project applies the **4-Stage Recommender Architecture** including:
-1. **Retrieval:** Uses a Two-Tower Embedding model (TensorFlow) to retrieve a set of potential candidate items.
-2. **Filtering:** Removes products that are not suitable for the current context.
-3. **Scoring/Ranking:** Uses a Gradient Boosting model (CatBoost) or LLMs (via OpenAI) to score and re-rank the candidates.
-4. **Ordering:** Sorts and displays the final recommendation list to the user via a Streamlit Web UI.
-
-## 📺 Architecture & UI Demo
-
-**1. Streamlit Application UI:**  
-![UI Example](assets/ui_example.png)
-
-**2. Overall System Architecture:**  
-![System Architecture](assets/system_architecture.png)
-
-**3. 4-Stage Recommender Architecture:**  
-![4 Stage Recommender Architecture](assets/4_stage_recommender_architecture.png)
-
-**4. Two-Tower Model Structure:**  
-![Two Tower Model](assets/two_tower_embedding_model.png)
+</div>
 
 ---
 
-## 🛠 Installation Guide
+## 📋 Mục lục
 
-The project uses `uv` package manager for virtual environment management and blazing-fast library installation.
+- [Bối cảnh dự án](#-bối-cảnh-dự-án)
+- [Tổng quan hệ thống](#-tổng-quan-hệ-thống)
+- [Kiến trúc 4 giai đoạn](#-kiến-trúc-4-giai-đoạn)
+- [Cấu trúc dự án](#-cấu-trúc-dự-án)
+- [Hướng dẫn cài đặt](#-hướng-dẫn-cài-đặt)
+- [Cách sử dụng](#-cách-sử-dụng)
+- [Giao diện ứng dụng](#-giao-diện-ứng-dụng)
+- [Thư viện phụ thuộc](#-thư-viện-phụ-thuộc)
+- [Lỗi đã biết & Khắc phục](#-lỗi-đã-biết--khắc-phục)
+- [Tài liệu tham khảo](#-tài-liệu-tham-khảo)
+- [Thông tin liên hệ](#-thông-tin-liên-hệ)
 
-**Step 1: Clone the repository**
+---
+
+## 🎯 Bối cảnh dự án
+
+Dự án được xây dựng với mục đích **học tập và thực hành** các kiến thức về:
+- **Machine Learning & Deep Learning** – xây dựng mô hình Two-Tower (TensorFlow) và Gradient Boosting (CatBoost)
+- **Recommender Systems** – triển khai pipeline gợi ý sản phẩm hoàn chỉnh
+- **MLOps** – tích hợp Hopsworks Feature Store, Model Registry, và Inference Deployments
+
+Dữ liệu sử dụng là tập dữ liệu **H&M Fashion** (khách hàng, sản phẩm, giao dịch mua sắm) cung cấp bởi Hopsworks.
+
+---
+
+## 🏗️ Tổng quan hệ thống
+
+Dự án mô phỏng một **ML Pipeline hoàn chỉnh** với 3 giai đoạn chính:
+
+| Giai đoạn | Mô tả |
+|-----------|-------|
+| **Feature Pipeline (FP)** | Thu thập dữ liệu thô từ H&M, biến đổi đặc trưng và lưu vào Hopsworks Feature Store |
+| **Training Pipeline (TP)** | Huấn luyện mô hình Two-Tower (Retrieval) và CatBoost (Ranking), đăng ký vào Model Registry |
+| **Inference Pipeline (IP)** | Tính toán vector embeddings, tạo deployments và phục vụ gợi ý qua Streamlit UI |
+
+**Kiến trúc hệ thống tổng thể:**
+
+![System Architecture](assets/system_architecture.png)
+
+---
+
+## 🔁 Kiến trúc 4 giai đoạn
+
+Hệ thống gợi ý áp dụng kiến trúc **4-Stage Recommender Architecture** được sử dụng phổ biến trong các hệ thống production quy mô lớn:
+
+![4-Stage Architecture](assets/4_stage_recommender_architecture.png)
+
+### Giai đoạn 1 – Retrieval (Truy xuất)
+- Sử dụng mô hình **Two-Tower Embedding** (TensorFlow + TensorFlow Recommenders)
+- **Query Tower**: nhận `customer_id`, `age`, `month_sin`, `month_cos` → tạo user embedding
+- **Item Tower**: nhận `article_id`, `garment_group_name`, `index_group_name` → tạo item embedding  
+- Tìm kiếm **top-K sản phẩm tiềm năng** bằng phương pháp ANN (Approximate Nearest Neighbor) trên Hopsworks
+
+![Two-Tower Model](assets/two_tower_embedding_model.png)
+
+### Giai đoạn 2 – Filtering (Lọc)
+- Loại bỏ các sản phẩm không phù hợp (đã mua, không còn hàng, v.v.)
+- Giảm bớt candidate pool trước khi đưa sang bước xếp hạng
+
+### Giai đoạn 3 – Scoring / Ranking (Chấm điểm & Xếp hạng)
+Hỗ trợ **hai chế độ ranking**:
+
+| Chế độ | Mô hình | Mô tả |
+|--------|---------|-------|
+| **Standard Ranking** | CatBoost (`ranking.pkl`) | Gradient Boosting phân loại nhị phân (mua / không mua) dựa trên đặc trưng sản phẩm và khách hàng |
+| **LLM Ranking** | OpenAI GPT-4o-mini | Re-ranking bằng LLM qua LangChain – phù hợp cho gợi ý theo ngữ cảnh và ngôn ngữ tự nhiên |
+
+### Giai đoạn 4 – Ordering (Sắp xếp & Hiển thị)
+- Sắp xếp danh sách cuối cùng và hiển thị trên **giao diện Streamlit**
+- Theo dõi tương tác của người dùng (clicks, purchases) và cập nhật lại Feature Store theo thời gian thực
+
+---
+
+## 📁 Cấu trúc dự án
+
+```
+ReSys/
+├── 📓 notebooks/                          # Jupyter Notebooks thực thi pipeline
+│   ├── 1_fp_computing_features.ipynb      # [FP] Feature Engineering
+│   ├── 2_tp_training_retrieval_model.ipynb# [TP] Huấn luyện Two-Tower
+│   ├── 3_tp_training_ranking_model.ipynb  # [TP] Huấn luyện CatBoost Ranking
+│   ├── 4_ip_computing_item_embeddings.ipynb   # [IP] Tính toán Item Embeddings
+│   ├── 5_ip_creating_deployments.ipynb    # [IP] Tạo Deployments (Standard)
+│   ├── 6_scheduling_materialization_jobs.ipynb # [IP] Lên lịch tự động hóa
+│   └── 7_ip_creating_deployments_llm_ranking.ipynb # [IP] Tạo Deployments (LLM)
+│
+├── 🐍 recsys/                             # Package Python chính
+│   ├── config.py                          # Cấu hình toàn hệ thống (Pydantic Settings)
+│   ├── features/                          # Logic xây dựng đặc trưng
+│   │   ├── articles.py                    # Đặc trưng sản phẩm + text embeddings
+│   │   ├── customers.py                   # Đặc trưng khách hàng
+│   │   ├── transactions.py                # Đặc trưng giao dịch (sin/cos tháng)
+│   │   ├── interaction.py                 # Đặc trưng tương tác người dùng
+│   │   ├── ranking.py                     # Đặc trưng cho ranking model
+│   │   └── embeddings.py                  # Embedding articles (sentence-transformers)
+│   ├── training/                          # Định nghĩa và huấn luyện mô hình
+│   │   ├── two_tower.py                   # Kiến trúc Two-Tower Model (TF/TFRS)
+│   │   └── ranking.py                     # Huấn luyện CatBoost Ranking
+│   ├── hopsworks_integration/             # Tích hợp Hopsworks
+│   │   ├── feature_store.py               # Tạo Feature Groups & Feature Views
+│   │   ├── two_tower_serving.py           # Deploy Query/Candidate Model
+│   │   ├── ranking_serving.py             # Deploy CatBoost Ranking Model
+│   │   ├── llm_ranking_serving.py         # Deploy LLM Ranking
+│   │   └── constants.py                   # Định nghĩa đặc trưng (Feature Descriptions)
+│   ├── inference/                         # Transformer scripts cho Hopsworks Deployments
+│   │   ├── query_transformer.py           # Tiền xử lý đầu vào cho Query Model
+│   │   ├── ranking_transformer.py         # Tiền xử lý cho Ranking Model
+│   │   ├── ranking_predictor.py           # Predictor cho CatBoost
+│   │   └── llm_ranking_predictor.py       # Predictor cho LLM Ranking
+│   ├── raw_data_sources/
+│   │   └── h_and_m.py                     # Load dữ liệu H&M từ Hopsworks repo
+│   └── ui/                                # Logic giao diện Streamlit
+│       ├── recommenders.py                # Hiển thị gợi ý (Standard & LLM)
+│       ├── interaction_tracker.py         # Theo dõi tương tác người dùng
+│       ├── feature_group_updater.py       # Cập nhật Feature Store thời gian thực
+│       └── utils.py                       # Tiện ích kết nối deployments
+│
+├── 🖥️ streamlit_app.py                   # Điểm khởi chạy ứng dụng UI
+├── 🛠️ Makefile                           # Các lệnh tự động hóa pipeline
+├── 📦 pyproject.toml                      # Cấu hình dự án và thư viện
+├── 🔒 .env.example                        # Mẫu biến môi trường
+└── 🖼️ assets/                            # Hình ảnh minh họa
+```
+
+---
+
+## ⚙️ Hướng dẫn cài đặt
+
+Dự án sử dụng [`uv`](https://github.com/astral-sh/uv) – trình quản lý gói Python thế hệ mới, cực nhanh.
+
+### Bước 1: Clone repository
+
 ```bash
 git clone https://github.com/hiepvm04/end-to-end-4-stage-fashion-recommender-system.git
 cd end-to-end-4-stage-fashion-recommender-system
 ```
 
-**Step 2: Install Python 3.11+ and dependencies (via uv)**
-If your system supports `make` (Linux/macOS), you can run:
+### Bước 2: Cài đặt Python 3.11
+
 ```bash
 make install-python
-make install
-```
-🚨 **Note for Windows users:** If you don't have `make`, run the following commands in PowerShell:
-```powershell
-uv python install          # Automatically downloads and installs Python
-uv venv                    # Creates a .venv virtual environment
-.venv\Scripts\activate     # Activates the environment
-uv pip install --all-extras --requirement pyproject.toml  # Installs libraries
+# Tương đương: uv python install
 ```
 
-**Step 3: Environment Variables Configuration**
-Copy the template file and update your API keys to connect to external systems:
+### Bước 3: Tạo môi trường ảo và cài đặt thư viện
+
+```bash
+make install
+# Tương đương: uv venv && uv pip install --all-extras --requirement pyproject.toml
+```
+
+### Bước 4: Cấu hình biến môi trường
+
 ```bash
 cp .env.example .env
 ```
-Open the `.env` file and fill in the information:
+
+Mở file `.env` và điền thông tin API Key:
+
 ```env
+# Bắt buộc – dùng để kết nối Hopsworks Feature Store & Model Registry
 HOPSWORKS_API_KEY="your_hopsworks_api_key_here"
-OPENAI_API_KEY="your_openai_api_key_here" # Required if using the LLM Ranking model
+
+# Tùy chọn – chỉ cần nếu muốn thử chế độ LLM Ranking
+OPENAI_API_KEY="your_openai_api_key_here"
 ```
 
+> **Lấy Hopsworks API Key:** Đăng nhập tại [app.hopsworks.ai](https://app.hopsworks.ai) → Account Settings → API Keys.
+
 ---
 
-## 🚀 Usage & Pipeline Execution
+## 🚀 Cách sử dụng
 
-You can run the entire pipeline step-by-step using `make` commands (Linux/macOS) or directly using `uv` (Windows):
+### Chạy toàn bộ pipeline một lần
 
-### 1. Run the Training and Deployment Pipeline
-Execute the notebooks sequentially in order:
-* **Linux/macOS (using `make`):** 
-Open the terminal and run the commands one by one, or use `make all` to run everything:
 ```bash
-  # 1. Feature Engineering (Process features and store them in the Feature Store)
-  make feature-engineering
-  
-  # 2. Train Retrieval Model (Two-Tower Model)
-  make train-retrieval
-  
-  # 3. Train Ranking Model (CatBoost Model)
-  make train-ranking
-  
-  # 4. Compute and Store Vector Embeddings
-  make create-embeddings
-  
-  # 5. Initialize Deployments on Hopsworks
-  make create-deployments
-  
-  # 6. Schedule Automated Materialization Jobs
-  make schedule-materialization-jobs
-  ```
+make all
+```
 
-* **Windows (using `uv` directly):**
-```powershell
-  uv run ipython notebooks/1_fp_computing_features.ipynb
-  uv run ipython notebooks/2_tp_training_retrieval_model.ipynb
-  uv run ipython notebooks/3_tp_training_ranking_model.ipynb
-  uv run ipython notebooks/4_ip_computing_item_embeddings.ipynb
-  uv run ipython notebooks/5_ip_creating_deployments.ipynb
-  uv run ipython notebooks/6_scheduling_materialization_jobs.ipynb
-  ```
+Hoặc chạy từng bước theo thứ tự:
 
-### 2. Launch the UI (Streamlit)
-After the deployments on Hopsworks have been successfully created, you can start the UI:
+### Pipeline từng bước
 
-**Using the CatBoost ranking model (Default):**
-* Linux/macOS: `make start-ui`
-* Windows (PowerShell): `$env:RANKING_MODEL_TYPE="ranking"; uv run python -m streamlit run streamlit_app.py`
+```bash
+# Bước 1: Feature Engineering
+# Load dữ liệu H&M, tính đặc trưng và lưu vào Hopsworks Feature Store
+make feature-engineering
 
-**Using the LLM ranking model (OpenAI):**
-* Linux/macOS: `make start-ui-llm-ranking`
-* Windows (PowerShell): `$env:RANKING_MODEL_TYPE="llmranking"; uv run python -m streamlit run streamlit_app.py`
+# Bước 2: Huấn luyện Retrieval Model (Two-Tower)
+# Huấn luyện mô hình Two-Tower và đăng ký vào Model Registry
+make train-retrieval
 
----
+# Bước 3: Huấn luyện Ranking Model (CatBoost)
+# Huấn luyện mô hình CatBoost phân loại và đăng ký vào Model Registry
+make train-ranking
 
-## 📦 Core Dependencies
+# Bước 4: Tính toán Item Embeddings
+# Chạy Candidate Model sinh vector embeddings, lưu vào Feature Store
+make create-embeddings
 
-- `hopsworks[python]`: Feature Store and Model Registry management.
-- `tensorflow-recommenders` & `tensorflow`: Training the Retrieval model (Two-Tower).
-- `catboost`: Building the high-performance Ranking model.
-- `streamlit`: Designing the interactive Web UI.
-- `langchain` & `langchain-openai`: Integrating LLM capabilities.
-- `sentence-transformers`: Generating Text Embeddings.
-- `polars`: Blazing-fast tabular data (DataFrames) processing.
+# Bước 5: Tạo Inference Deployments
+# Deploy Query Model và Ranking Model lên Hopsworks Inference
+make create-deployments
 
-*(See the full list in `pyproject.toml`)*
+# Bước 6: Lên lịch Materialization Jobs
+# Tự động hóa cập nhật dữ liệu trên Feature Store theo định kỳ
+make schedule-materialization-jobs
+```
 
----
+> **Lưu ý:** Nếu muốn thử LLM Ranking, thay bước 5 bằng:
+> ```bash
+> make create-deployments-llm-ranking
+> ```
 
-## ⚠️ Troubleshooting
+### Khởi chạy giao diện Streamlit
 
-1. **`tensorflow-io-gcs-filesystem` error on Windows:**
-   - **Symptom:** When running `uv pip install`, it throws a missing wheel error for the `win_amd64` platform.
-   - **Fix:** Add the following snippet to the end of your `pyproject.toml` file to force a compatible older version for Windows, then run the installation again:
-     ```toml
-     [tool.uv]
-     override-dependencies = ["tensorflow-io-gcs-filesystem==0.31.0"]
-     ```
-2. **Unauthorized error with Hopsworks:**
-   - **Fix:** Double-check your `HOPSWORKS_API_KEY` in the `.env` file. Ensure the API Key is not expired and has sufficient read/write permissions.
-3. **Out of Memory (OOM) overloaded RAM:**
-   - **Fix:** The `train-retrieval` notebook can consume a lot of RAM when creating large datasets. Set `CUSTOMER_DATA_SIZE = CustomerDatasetSize.SMALL` in the `recsys/config.py` file.
-4. **Avoiding idle costs on Hopsworks:**
-   - When not in use, shut down the Inference Deployments by running: `make clean-hopsworks-resources` (or `uv run python tools/clean_hopsworks_resources.py` on Windows). Restarting the pipeline via API for the first time will take a moment (Cold Start).
+Sau khi deployments đã sẵn sàng trên Hopsworks:
+
+```bash
+# Chế độ Standard Ranking (CatBoost) – Mặc định
+make start-ui
+
+# Chế độ LLM Ranking (OpenAI GPT-4o-mini)
+make start-ui-llm-ranking
+```
+
+### Dọn dẹp tài nguyên Hopsworks
+
+```bash
+make clean-hopsworks-resources
+```
+
+### Tùy chỉnh cấu hình
+
+Các tham số cấu hình được định nghĩa trong `recsys/config.py` và có thể ghi đè qua biến môi trường:
+
+| Tham số | Mặc định | Mô tả |
+|---------|----------|-------|
+| `CUSTOMER_DATA_SIZE` | `SMALL` | Kích thước dataset (`SMALL` / `MEDIUM` / `LARGE`) |
+| `TWO_TOWER_NUM_EPOCHS` | `10` | Số epochs huấn luyện Two-Tower |
+| `TWO_TOWER_MODEL_EMBEDDING_SIZE` | `16` | Chiều của embedding vector |
+| `TWO_TOWER_LEARNING_RATE` | `0.01` | Learning rate (AdamW) |
+| `RANKING_ITERATIONS` | `100` | Số vòng lặp CatBoost |
+| `OPENAI_MODEL_ID` | `gpt-4o-mini` | Tên model OpenAI cho LLM Ranking |
+| `FEATURES_EMBEDDING_MODEL_ID` | `all-MiniLM-L6-v2` | Model sinh text embeddings |
 
 ---
 
-## 📚 References
+## 🖼️ Giao diện ứng dụng
 
-During the learning and development process, I have consulted and am grateful for the following useful resources:
-- [Hopsworks Framework Official Documentation](https://docs.hopsworks.ai/)
-- [TensorFlow Recommenders Tutorials](https://www.tensorflow.org/recommenders)
-- [Streamlit Technical Documentation](https://docs.streamlit.io/)
-- [ML Pipeline Architecture for Recommender Systems (Google Cloud)](https://cloud.google.com/architecture/machine-learning-on-gcp)
+**Giao diện Streamlit chính:**
 
-**Reference Course:** [Hands-On Personalized Recommender System 2024](https://github.com/decodingml/hands-on-recommender-system-with-hopsworks)
+![UI Example](assets/ui_example.png)
+
+**Hopsworks Deployments:**
+
+![Hopsworks Deployments](assets/hopsworks_deployments.png)
+
+**GitHub Actions CI Pipeline:**
+
+![GitHub Actions Pipeline](assets/github_actions_pipeline_done.png)
 
 ---
 
-## ✉️ Contact Information
+## 📦 Thư viện phụ thuộc
 
-This project is a personal product for coursework and practical research. If you find it useful or have suggestions for improving the code/architecture, please open an Issue or reach out via:
+| Thư viện | Phiên bản | Vai trò |
+|----------|-----------|---------|
+| `hopsworks[python]` | ≥ 4.1.2 | Feature Store, Model Registry, Deployments |
+| `tensorflow` | 2.14 | Deep Learning framework |
+| `tensorflow-recommenders` | 0.7.2 | Two-Tower Retrieval Model |
+| `catboost` | 1.2 | Gradient Boosting Ranking Model |
+| `sentence-transformers` | 2.2.2 | Text embeddings (`all-MiniLM-L6-v2`) |
+| `langchain` | 0.2.6 | LLM orchestration cho LLM Ranking |
+| `langchain-openai` | 0.1.14 | Kết nối OpenAI GPT models |
+| `streamlit` | 1.28.2 | Web UI |
+| `polars` | 1.9.0 | Xử lý dữ liệu bảng hiệu năng cao |
+| `pydantic-settings` | ≥ 2.6.1 | Quản lý cấu hình và biến môi trường |
+| `loguru` | ≥ 0.7.2 | Logging |
 
-- **Author:** Vu Manh Hiep
-- **Email:** hiepvm04@gmail.com
-- **LinkedIn:** 
-- **Github:** https://github.com/hiepvm04
+**Công cụ phát triển:** `uv` (package manager), `ruff` (linter)
+
+---
+
+## 🐛 Lỗi đã biết & Khắc phục
+
+### ❶ Khởi động Deployment chậm
+Lần đầu gọi API inference trên Hopsworks có thể mất 1–3 phút do "cold start". Streamlit UI sẽ phản hồi chậm trong giai đoạn này.
+
+**→ Giải pháp:** Chờ spinner "Starting Deployments..." hoàn tất trước khi thao tác.
+
+### ❷ Out-of-Memory khi huấn luyện
+Bước `train-retrieval` có thể tiêu tốn nhiều RAM nếu dùng `LARGE` dataset trên máy cá nhân.
+
+**→ Giải pháp:** Đổi về `SMALL` dataset trong `.env`:
+```env
+CUSTOMER_DATA_SIZE=SMALL
+```
+
+### ❸ Rate Limit OpenAI (Error 429)
+Tính năng LLM Ranking gọi OpenAI API và có thể bị giới hạn với tài khoản miễn phí.
+
+**→ Giải pháp:** Nâng cấp plan OpenAI hoặc sử dụng Standard Ranking thay thế.
+
+### ❹ Lỗi xác thực Hopsworks (Unauthorized)
+**→ Giải pháp:** Kiểm tra `HOPSWORKS_API_KEY` trong `.env`, đảm bảo key chưa hết hạn và có đủ quyền.
+
+### ❺ Lỗi đường dẫn Windows khi lưu model
+Hopsworks deployment sử dụng đường dẫn `C:\temp\hopsworks_*` để lưu model tạm thời.
+
+**→ Giải pháp:** Đảm bảo ổ `C:\temp\` tồn tại hoặc tạo thủ công trước khi chạy notebook 5.
+
+---
+
+## 📚 Tài liệu tham khảo
+
+- [Hopsworks Documentation](https://docs.hopsworks.ai/) – Feature Store, Model Registry, Deployments
+- [TensorFlow Recommenders Tutorial](https://www.tensorflow.org/recommenders) – Two-Tower Model
+- [CatBoost Documentation](https://catboost.ai/docs/) – Gradient Boosting Ranking
+- [Streamlit Documentation](https://docs.streamlit.io/) – Web UI Framework
+- [Google ML Architecture: Recommender Systems](https://cloud.google.com/architecture/machine-learning-on-gcp)
+- [H&M Personalized Fashion Recommendations (Kaggle)](https://www.kaggle.com/competitions/h-and-m-personalized-fashion-recommendations)
+
+---
+
+## 👤 Thông tin liên hệ
+
+Đây là dự án cá nhân phục vụ học tập và nghiên cứu. Nếu bạn thấy hữu ích hoặc có góp ý, hãy mở một **Issue** hoặc liên hệ qua:
+
+| | |
+|--|--|
+| **Tên** | Vũ Mạnh Hiệp |
+| **Email** | hiemvm04@gmail.com |
+| **GitHub** | [github.com/hiepvm04](https://github.com/hiepvm04) |
+
+---
+
+<div align="center">
+
+⭐ Nếu dự án này hữu ích với bạn, hãy cho một **Star** nhé!
+
+</div>
