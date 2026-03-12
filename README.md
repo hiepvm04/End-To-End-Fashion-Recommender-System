@@ -25,7 +25,6 @@
 - [Cách sử dụng](#-cách-sử-dụng)
 - [Giao diện ứng dụng](#-giao-diện-ứng-dụng)
 - [Thư viện phụ thuộc](#-thư-viện-phụ-thuộc)
-- [Lỗi đã biết & Khắc phục](#-lỗi-đã-biết--khắc-phục)
 - [Tài liệu tham khảo](#-tài-liệu-tham-khảo)
 - [Thông tin liên hệ](#-thông-tin-liên-hệ)
 
