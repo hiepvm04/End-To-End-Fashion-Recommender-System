@@ -276,10 +276,6 @@ Các tham số cấu hình được định nghĩa trong `recsys/config.py` và 
 
 ![Hopsworks Deployments](assets/hopsworks_deployments.png)
 
-**GitHub Actions CI Pipeline:**
-
-![GitHub Actions Pipeline](assets/github_actions_pipeline_done.png)
-
 ---
 
 ## Kiểm thử
