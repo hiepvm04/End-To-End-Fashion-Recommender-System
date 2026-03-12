@@ -1,3 +1,4 @@
+<div align="center">
 # Hands-on Personalized Recommender System
 
 ![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)
@@ -171,5 +172,5 @@ This project is a personal product for coursework and practical research. If you
 
 - **Author:** Vu Manh Hiep
 - **Email:** hiepvm04@gmail.com
-- **LinkedIn:** [Add your LinkedIn link here...]
+- **LinkedIn:** 
 - **Github:** https://github.com/hiepvm04
